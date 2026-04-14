@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+
+  <style>
+    body { font-family: Arial; background:#e6f2ff; margin:0; }
+    header { background:#003366; color:white; padding:15px; text-align:center; }
+    .container { padding:20px; }
+    button { background:#0066cc; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; }
+    button:hover { background:#004999; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Amazon Clone 🛒</h1>
+</header>
+
+<div class="container">
+
+<h2>Login</h2>
+
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="login()">Login</button>
+
+<p id="result"></p>
+
+</div>
+
+<script>
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+  document.getElementById("result").innerText = data.message;
+
+  if (data.success) {
+    window.location.href = "home.html";
+  }
+}
+</script>
+
+</body>
+</html>
+

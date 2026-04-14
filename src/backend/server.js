@@ -12,11 +12,9 @@ app.use(cors());
 app.use(express.json());
 
 // =====================
-// FRONTEND PATH (IMPORTANT)
+// FRONTEND PATH
 // =====================
 const FRONTEND_PATH = path.join(__dirname, "../../Frontend");
-
-// Serve frontend files (HTML, images, etc.)
 app.use(express.static(FRONTEND_PATH));
 
 // =====================
@@ -31,7 +29,7 @@ const db = mysql.createConnection({
 
 db.connect(err => {
   if (err) {
-    console.log("❌ Database connection failed:", err);
+    console.log("❌ DB connection failed:", err);
   } else {
     console.log("✅ Connected to MySQL");
   }
@@ -54,29 +52,42 @@ app.post("/login", (req, res) => {
 
   db.query(sql, [email, password], (err, results) => {
     if (err) {
-      console.log(err);
-      return res.status(500).json({
-        success: false,
-        message: "Server error"
-      });
+      return res.json({ success: false, message: "Server error" });
     }
 
     if (results.length > 0) {
-      return res.json({
-        success: true,
-        message: "Login successful"
-      });
+      res.json({ success: true, message: "Login successful" });
     } else {
-      return res.json({
-        success: false,
-        message: "Invalid email or password"
-      });
+      res.json({ success: false, message: "Invalid credentials" });
     }
   });
 });
 
 // =====================
-// PRODUCTS ROUTE (SEARCH FIXED 🔥)
+// REGISTER ROUTE
+// =====================
+app.post("/register", (req, res) => {
+  const { email, password } = req.body;
+
+  const sql = "INSERT INTO users (email, password) VALUES (?, ?)";
+
+  db.query(sql, [email, password], (err, result) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "User already exists or error"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Account created successfully"
+    });
+  });
+});
+
+// =====================
+// PRODUCTS ROUTE (SEARCH)
 // =====================
 app.get("/products", (req, res) => {
   const search = req.query.search;
@@ -84,7 +95,6 @@ app.get("/products", (req, res) => {
   let sql = "SELECT * FROM products";
   let values = [];
 
-  // 🔍 APPLY SEARCH FILTER
   if (search && search.trim() !== "") {
     sql = `
       SELECT * FROM products
@@ -94,13 +104,8 @@ app.get("/products", (req, res) => {
     values = [`%${search}%`, `%${search}%`];
   }
 
-  console.log("🔍 Search:", search);
-  console.log("🧠 SQL:", sql);
-  console.log("📦 Values:", values);
-
   db.query(sql, values, (err, results) => {
     if (err) {
-      console.log("❌ DB Error:", err);
       return res.status(500).send("Error fetching products");
     }
 

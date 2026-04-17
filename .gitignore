@@ -1,5 +1,2 @@
-node_modules/
+node_modules
 .env
-*.exe
-*.log
-.DS_Store

@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
@@ -18,18 +20,18 @@ const FRONTEND_PATH = path.join(__dirname, "../../Frontend");
 app.use(express.static(FRONTEND_PATH));
 
 // =====================
-// MYSQL CONNECTION
+// MYSQL CONNECTION (SECURE)
 // =====================
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "gjuarez1s",
-  password: "Gusgusgus$20",
-  database: "amazon_clone"
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
 db.connect(err => {
   if (err) {
-    console.log("❌ DB connection failed:", err);
+    console.log("❌ Database connection failed:", err);
   } else {
     console.log("✅ Connected to MySQL");
   }
@@ -52,13 +54,23 @@ app.post("/login", (req, res) => {
 
   db.query(sql, [email, password], (err, results) => {
     if (err) {
-      return res.json({ success: false, message: "Server error" });
+      console.log(err);
+      return res.json({
+        success: false,
+        message: "Server error"
+      });
     }
 
     if (results.length > 0) {
-      res.json({ success: true, message: "Login successful" });
+      return res.json({
+        success: true,
+        message: "Login successful"
+      });
     } else {
-      res.json({ success: false, message: "Invalid credentials" });
+      return res.json({
+        success: false,
+        message: "Invalid email or password"
+      });
     }
   });
 });
@@ -73,6 +85,7 @@ app.post("/register", (req, res) => {
 
   db.query(sql, [email, password], (err, result) => {
     if (err) {
+      console.log(err);
       return res.json({
         success: false,
         message: "User already exists or error"
@@ -87,7 +100,7 @@ app.post("/register", (req, res) => {
 });
 
 // =====================
-// PRODUCTS ROUTE (SEARCH)
+// PRODUCTS ROUTE (SEARCH WORKING)
 // =====================
 app.get("/products", (req, res) => {
   const search = req.query.search;
@@ -106,6 +119,7 @@ app.get("/products", (req, res) => {
 
   db.query(sql, values, (err, results) => {
     if (err) {
+      console.log(err);
       return res.status(500).send("Error fetching products");
     }
 
@@ -116,6 +130,8 @@ app.get("/products", (req, res) => {
 // =====================
 // START SERVER
 // =====================
-app.listen(5000, () => {
-  console.log("🚀 Server running on http://127.0.0.1:5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://127.0.0.1:${PORT}`);
 });

@@ -4,6 +4,7 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const path = require("path");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -20,7 +21,7 @@ const FRONTEND_PATH = path.join(__dirname, "../../Frontend");
 app.use(express.static(FRONTEND_PATH));
 
 // =====================
-// MYSQL CONNECTION (SECURE)
+// MYSQL CONNECTION
 // =====================
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -45,62 +46,88 @@ app.get("/", (req, res) => {
 });
 
 // =====================
-// LOGIN ROUTE
+// REGISTER ROUTE (HASHING + VALIDATION)
+// =====================
+app.post("/register", async (req, res) => {
+  const { email, password } = req.body;
+
+  // 🔐 Strong password validation
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+  if (!passwordRegex.test(password)) {
+    return res.json({
+      success: false,
+      message:
+        "Password must be 8+ chars, include uppercase, lowercase, and number"
+    });
+  }
+
+  try {
+    // 🔐 HASH PASSWORD
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const sql = "INSERT INTO users (email, password) VALUES (?, ?)";
+
+    db.query(sql, [email, hashedPassword], (err, result) => {
+      if (err) {
+        console.log(err);
+        return res.json({
+          success: false,
+          message: "User already exists or error"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Account created successfully"
+      });
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error hashing password");
+  }
+});
+
+// =====================
+// LOGIN ROUTE (SECURE)
 // =====================
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+  const sql = "SELECT * FROM users WHERE email = ?";
 
-  db.query(sql, [email, password], (err, results) => {
+  db.query(sql, [email], async (err, results) => {
     if (err) {
-      console.log(err);
-      return res.json({
-        success: false,
-        message: "Server error"
-      });
+      return res.json({ success: false, message: "Server error" });
     }
 
-    if (results.length > 0) {
-      return res.json({
+    if (results.length === 0) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    const user = results[0];
+
+    // 🔐 Compare hashed password
+    const match = await bcrypt.compare(password, user.password);
+
+    if (match) {
+      res.json({
         success: true,
         message: "Login successful"
       });
     } else {
-      return res.json({
+      res.json({
         success: false,
-        message: "Invalid email or password"
+        message: "Invalid password"
       });
     }
   });
 });
 
 // =====================
-// REGISTER ROUTE
-// =====================
-app.post("/register", (req, res) => {
-  const { email, password } = req.body;
-
-  const sql = "INSERT INTO users (email, password) VALUES (?, ?)";
-
-  db.query(sql, [email, password], (err, result) => {
-    if (err) {
-      console.log(err);
-      return res.json({
-        success: false,
-        message: "User already exists or error"
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Account created successfully"
-    });
-  });
-});
-
-// =====================
-// PRODUCTS ROUTE (SEARCH WORKING)
+// PRODUCTS ROUTE (SEARCH)
 // =====================
 app.get("/products", (req, res) => {
   const search = req.query.search;

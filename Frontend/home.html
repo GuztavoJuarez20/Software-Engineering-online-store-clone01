@@ -25,10 +25,9 @@
       background: #cce0ff;
     }
 
-    /* 🔍 AMAZON-STYLE SEARCH BAR */
+    /* 🔍 SEARCH BAR */
     .search-bar {
       display: flex;
-      align-items: center;
     }
 
     .search-bar input {
@@ -36,8 +35,8 @@
       width: 300px;
       border: 1px solid #ccc;
       border-right: none;
-      outline: none;
       border-radius: 5px 0 0 5px;
+      outline: none;
     }
 
     .search-bar button {
@@ -60,8 +59,8 @@
 
     /* 🔥 CATEGORY BUTTONS */
     .categories {
-      padding: 10px;
       text-align: center;
+      padding: 10px;
     }
 
     .categories button {
@@ -111,8 +110,8 @@
 
     .product-card button {
       margin-top: 10px;
-      width: 100%;
       padding: 10px;
+      width: 100%;
       background: #0066cc;
       color: white;
       border: none;
@@ -133,26 +132,21 @@
 </header>
 
 <div class="top-bar">
-
   <div class="search-bar">
-    <input 
-      id="search" 
-      placeholder="Search products..." 
-      oninput="loadProducts()"
-    >
+    <input id="search" placeholder="Search products...">
     <button onclick="loadProducts()">🔍</button>
   </div>
 
   <a href="cart.html">Go to Cart 🛒</a>
-
 </div>
 
 <!-- 🔥 CATEGORY FILTERS -->
 <div class="categories">
   <button onclick="filterCategory('')">All</button>
   <button onclick="filterCategory('laptop')">Laptops</button>
-  <button onclick="filterCategory('cable')">Accessories</button>
+  <button onclick="filterCategory('accessory')">Accessories</button>
   <button onclick="filterCategory('keyboard')">Keyboards</button>
+  <button onclick="filterCategory('tool')">Tools</button>
 </div>
 
 <h2>Products</h2>
@@ -188,10 +182,10 @@ async function loadProducts() {
       );
     }
 
-    // 🔥 CATEGORY FILTER
+    // 🏷 CATEGORY FILTER (USES DATABASE FIELD)
     if (currentCategory) {
       filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(currentCategory)
+        p.category === currentCategory
       );
     }
 

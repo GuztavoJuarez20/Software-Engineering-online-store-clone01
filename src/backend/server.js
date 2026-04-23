@@ -51,6 +51,22 @@ app.get("/", (req, res) => {
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
 
+  // 🚨 EMAIL CANNOT BE EMPTY
+  if (!email || email.trim() === "") {
+    return res.json({
+      success: false,
+      message: "Email cannot be empty"
+    });
+  }
+
+  // 🚨 PASSWORD CANNOT BE EMPTY
+  if (!password || password.trim() === "") {
+    return res.json({
+      success: false,
+      message: "Password cannot be empty"
+    });
+  }
+
   // 🔐 Strong password validation
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
